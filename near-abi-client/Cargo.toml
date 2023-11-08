@@ -2,23 +2,19 @@
 name = "near-abi-client"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.56.0"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/near/near-abi-client-rs"
-description = """
-Library to generate Rust clients for NEAR smart contracts.
-"""
 
 [dependencies]
 syn = "1.0"
 quote = "1.0"
 anyhow = "1.0"
-convert_case = "0.5"
+convert_case = "0.6"
 prettyplease = "0.1"
 
-near-abi-client-impl = { path = "../near-abi-client-impl", version = "0.1.0" }
-near-abi-client-macros = { path = "../near-abi-client-macros", version = "0.1.0" }
+near-abi-client-impl = { path = "../near-abi-client-impl" }
+near-abi-client-macros = { path = "../near-abi-client-macros" }
 
 [dev-dependencies]
 tempdir = "0.3.7"

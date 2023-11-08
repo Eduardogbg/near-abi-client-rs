@@ -13,45 +13,45 @@ pub use near_abi_client_macros::generate;
 /// Configuration options for ABI code generation.
 #[derive(Default)]
 pub struct Generator {
-    pub out_dir: Option<PathBuf>,
-    abis: Vec<(PathBuf, Option<String>)>,
+  pub out_dir: Option<PathBuf>,
+  abis: Vec<(PathBuf, Option<String>)>,
 }
 
 impl Generator {
-    pub fn new(out_dir: PathBuf) -> Self {
-        Generator {
-            out_dir: Some(out_dir),
-            abis: vec![],
-        }
+  pub fn new(out_dir: PathBuf) -> Self {
+    Generator {
+      out_dir: Some(out_dir),
+      abis: vec![],
     }
+  }
 
-    pub fn file(mut self, path: impl Into<PathBuf>) -> Self {
-        self.abis.push((path.into(), None));
-        self
-    }
+  pub fn file(mut self, path: impl Into<PathBuf>) -> Self {
+    self.abis.push((path.into(), None));
+    self
+  }
 
-    pub fn file_with_name(mut self, path: impl Into<PathBuf>, name: String) -> Self {
-        self.abis.push((path.into(), Some(name)));
-        self
-    }
+  pub fn file_with_name(mut self, path: impl Into<PathBuf>, name: String) -> Self {
+    self.abis.push((path.into(), Some(name)));
+    self
+  }
 
-    pub fn generate(self) -> Result<()> {
-        let target: PathBuf = self.out_dir.clone().map(Ok).unwrap_or_else(|| {
-            env::var_os("OUT_DIR")
-                .ok_or_else(|| anyhow!("OUT_DIR environment variable is not set"))
-                .map(Into::into)
-        })?;
-        fs::create_dir_all(&target)?;
+  pub fn generate(self) -> Result<()> {
+    let target: PathBuf = self.out_dir.clone().map(Ok).unwrap_or_else(|| {
+      env::var_os("OUT_DIR")
+        .ok_or_else(|| anyhow!("OUT_DIR environment variable is not set"))
+        .map(Into::into)
+    })?;
+    fs::create_dir_all(&target)?;
 
-        for (abi_path, name) in self.abis {
-            let abi_path_no_ext = abi_path.with_extension("");
-            let abi_filename = abi_path_no_ext
-                .file_name()
-                .ok_or_else(|| anyhow!("{:?} is not a valid ABI path", &abi_path))?;
-            let rust_path = target.join(abi_filename).with_extension("rs");
-            let near_abi = read_abi(&abi_path);
+    for (abi_path, name) in self.abis {
+      let abi_path_no_ext = abi_path.with_extension("");
+      let abi_filename = abi_path_no_ext
+        .file_name()
+        .ok_or_else(|| anyhow!("{:?} is not a valid ABI path", &abi_path))?;
+      let rust_path = target.join(abi_filename).with_extension("rs");
+      let near_abi = read_abi(&abi_path);
 
-            let contract_name = name
+      let contract_name = name
                 .as_ref()
                 .map(|n| format_ident!("{}", n))
                 .or_else(|| {
@@ -68,14 +68,14 @@ impl Generator {
                     )
                 })?;
 
-            let token_stream = generate_abi_client(near_abi, contract_name);
-            let syntax_tree = syn::parse_file(&token_stream.to_string()).unwrap();
-            let formatted = prettyplease::unparse(&syntax_tree);
+      let token_stream = generate_abi_client(near_abi, contract_name);
+      let syntax_tree = syn::parse_file(&token_stream.to_string()).unwrap();
+      let formatted = prettyplease::unparse(&syntax_tree);
 
-            let mut rust_file = File::create(rust_path)?;
-            write!(rust_file, "{}", formatted)?;
-        }
-
-        Ok(())
+      let mut rust_file = File::create(rust_path)?;
+      write!(rust_file, "{}", formatted)?;
     }
+
+    Ok(())
+  }
 }
